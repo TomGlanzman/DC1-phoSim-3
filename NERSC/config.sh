@@ -8,6 +8,9 @@ export DC1_VISIT_DB='/global/common/cori/contrib/lsst/production/DC1/visitDBs/20
 export DC1_OPSIM_DB='/global/common/cori/contrib/lsst/production/DC1/opsimDBs/minion_1016_sqlite_new_dithers.db'
 export DC1_OPSIM_DB='/global/cscratch1/sd/desc/opsimDBs/minion_1016_sqlite_new_dithers.db'
 
+## minimum magnitude (max brightness) for objects in sky catalog
+export DC1_MINMAG=10.0
+
 ## Location of phoSim inputs
 DC1base=`dirname ${DC1_ROOT}`
 export PHOSIM_CATALOGS=${DC1base}/catalogs

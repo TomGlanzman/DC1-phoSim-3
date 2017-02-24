@@ -220,7 +220,9 @@ icName = 'phosim_cat_'+visitID+'.txt'
 print 'icName = ',icName
 icSelect = os.path.join(icDir,icName)
 print 'icSelect = ',icSelect
-opts = ' --db '+os.getenv('DC1_OPSIM_DB')+' --out '+icDir+' --id '+visitID
+minMag = os.getenv('DC1_MINMAG')
+print 'minMag = ',minMag
+opts = ' --db '+os.getenv('DC1_OPSIM_DB')+' --out '+icDir+' --id '+visitID+' --min_mag '+minMag
 cmd += opts
 log.info('Generate instanceCatalog.')
 print cmd

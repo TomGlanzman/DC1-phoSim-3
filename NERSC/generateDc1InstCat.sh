@@ -5,12 +5,12 @@ opts=$@
 shift $#
 # (one must empty the $@ var or it is sent to the setup script...)
 
-echo 'sourcing setup'
+echo 'sourcing instanceCatalog generation setup'
 source /global/common/cori/contrib/lsst/lsstDM/setupStack-dc1.sh
 
 echo 'generate ic'
-echo ${DC1_CONFIGDIR}/generateDc1InstCat.py ${opts}
-${DC1_CONFIGDIR}/generateDc1InstCat.py ${opts}
+echo python ${DC1_CONFIGDIR}/generateDc1InstCat.py ${opts}
+python ${DC1_CONFIGDIR}/generateDc1InstCat.py ${opts}
 
 rc=$?
 echo 'Return from generateDc1InstCat.py, rc ='$rc
