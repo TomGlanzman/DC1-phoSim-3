@@ -2,7 +2,7 @@
 ## runPhosimStep.py - Run a part of phoSim
 ##
 
-import os,sys,shutil,gzip
+import os,sys,shutil,gzip,subprocess,shlex
 import logging as log
 
 def runPhosimStep(step,snap=0):
@@ -67,17 +67,30 @@ def runPhosimStep(step,snap=0):
 ## Switch to phoSim work directory for remaining steps
     os.chdir(jobParms['initialdir'])
 
-## append trimcatalog for this sensor to the end of the raytrace .pars file
+## append trimcatalog for this sensor to the end of the raytrace .pars file (but only once)
     if step=='raytrace':
         trimcatFileName = 'trimcatalog_'+os.getenv('DC1_OBSHISTID')+'_'+os.getenv('DC1_SENSORID')+'.pars'
         print 'trimcatFileName = ',trimcatFileName
-        log.info('Append trimcatalog to end of raytrace .pars file')
-        cmd = 'cat '+trimcatFileName+' >> '+parFileName
-        print cmd
-        rc = os.system(cmd)
-        if rc <> 0:
-            log.error('Failure to concatenate trimcat to raytrace .pars file')
-            sys.exit(1)
+
+        ## Check if trimmed catalog already appended to raytrace .pars file
+        trimmed = False
+        with open(parFileName,'r') as sfp:
+            for line in sfp:
+                if line.startswith('object'):
+                    trimmed = True
+                    break
+                pass
+            pass
+        log.info('raytrace.pars file trimmed: '+str(trimmed))
+        if not trimmed:
+            log.info('Append trimcatalog to end of raytrace .pars file')
+            cmd = 'cat '+trimcatFileName+' >> '+parFileName
+            print cmd
+            rc = os.system(cmd)
+            if rc <> 0:
+                log.error('Failure to concatenate trimcat to raytrace .pars file')
+                sys.exit(1)
+                pass
             pass
         pass
 

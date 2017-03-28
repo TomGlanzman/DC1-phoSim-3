@@ -1,7 +1,8 @@
 ## phosimSetup.sh - establish cori environment to run phoSim (and DMTCP)
 
 ## Select version and location
-export PHOSIM_ROOT=/global/common/cori/contrib/lsst/phosim/v3.6
+#export PHOSIM_ROOT=/global/common/cori/contrib/lsst/phosim/v3.6 # 201612
+export PHOSIM_ROOT=/global/common/cori/contrib/lsst/phosim/v3.6.1 # 20170221
 export DMTCP_ROOT=/global/common/cori/contrib/lsst/dmtcp/2.4.5
 
 ## Add dummy condor_submit_dag to PATH

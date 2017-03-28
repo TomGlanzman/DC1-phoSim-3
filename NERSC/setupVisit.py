@@ -28,53 +28,6 @@ if rc <> 0 :
     pass
 
 
-'''  What follows is the old way of using pre-made instanceCatalogs
-########################################################
-########################################################
-########################################################
-########################################################
-########################################################
-## Read in list of instance catalogs to process (ORDER IS IMPORTANT!)
-icList = os.getenv("PHOSIMICL")
-try:
-    icListObj = open(icList)
-except:
-    log.error("Unable to open instance catalog list: "+icList)
-    sys.exit(99)
-
-lineList = icListObj.read().splitlines()
-log.info("Opened and read list of instance catalogs, \n\t%s",icList)
-
-
-## Unpack the instance catalog list
-nics = 0
-icList = []
-for line in lineList:
-    if len(line) == 0 or line.startswith('#'): continue  # ignore empty/comment lines
-    nics += 1
-    #print nics,': ',line
-    icList.append(line)
-    pass
-log.info('Number of instance catalogs found = %i',len(icList))
-
-
-## Select instance catalog for this stream
-stream = int(sstream)
-PHOSIMIN = os.getenv("PHOSIM_CATALOGS")
-print 'This is pipeline stream ',stream
-if stream < 0 or stream > nics-1:
-    log.error("This pipeline stream is out of range (not sufficient instance catalogs): %i",stream)
-    sys.exit(99)
-    pass
-icSelect = os.path.join(PHOSIMIN,icList[stream])
-log.info('Selected instance catalog: \n\t%s',icSelect)
-########################################################
-########################################################
-########################################################
-########################################################
-########################################################
-'''
-
 
 ## Create Persistent data store directory structure for this invocation of phoSim
 ##   This area is in the LSST "project" storage space
@@ -152,7 +105,7 @@ if rc <> 0 :
     pass
 
 
-## Check that scratch (staging) area is clean
+## Check that SCRATCH (staging) area is clean
 scrDir = os.path.join(os.getenv('PHOSIM_SCR_ROOT'),os.getenv('DC1_SIXDIGSTREAM'))
 log.info('Checking phoSim scratch/staging space: '+scrDir)
 if os.access(scrDir,os.F_OK):
@@ -161,7 +114,7 @@ if os.access(scrDir,os.F_OK):
     pass
 
 
-## Create staging area (work and output directories)
+## Create staging area (work and output directories) in SCRATCH
 log.info('Creating phoSim work and output directories in $SCRATCH')
 scr_work=os.path.join(scrDir,'work')
 scr_output=os.path.join(scrDir,'output')
@@ -177,8 +130,9 @@ if rc <> 0 :
     pass
 
 
-
+##
 ## Determine visit number (obsHistID) and list of sensors to simulate
+##
 stream = int(os.getenv('PIPELINE_STREAM'))
 visitFile = os.getenv('DC1_VISIT_DB')
 log.info('Extract visit data.')
@@ -211,28 +165,45 @@ if rc1 <> 0 or rc2 <> 0 or rc3 <> 0:
     pass
 
 
-## Generate a new instanceCatalog
-cmd = os.path.join(os.getenv('DC1_CONFIGDIR'),'generateDc1InstCat.sh')
-print 'cmd = ',cmd
-icDir = os.path.join(scrDir,'instCat')
-print 'icDir = ',icDir
-icName = 'phosim_cat_'+visitID+'.txt'
-print 'icName = ',icName
-icSelect = os.path.join(icDir,icName)
-print 'icSelect = ',icSelect
-opts = ' --db '+os.getenv('DC1_OPSIM_DB')+' --out '+icDir+' --id '+visitID
-cmd += opts
-log.info('Generate instanceCatalog.')
-print cmd
+##  Set up phoSim instanceCatalog
 
-sys.stdout.flush()
-rc = os.system(cmd)
-sys.stdout.flush()
-log.info('Return from generateDc1InstCat, rc= '+str(rc))
-if rc <> 0:
-    log.error('Failed to generate instance catalog.')
-    sys.exit(1)
+if os.getenv('PHOSIM_IC_GEN') == 'STATIC':
+    print 'Using statically generated instance catalog'
+    icDir = os.getenv('PHOSIM_CATALOGS')+'/'+visitID
+    print 'icDir = ',icDir
+    icName = 'phosim_cat_'+visitID+'.txt'
+    print 'icName = ',icName
+    icSelect = os.path.join(icDir,icName)
+    print 'icSelect = ',icSelect
+    
+elif os.getenv('PHOSIM_IC_GEN') == 'DYNAMIC':
+    print 'Using dymanically generated instance catalog'
+
+    cmd = os.path.join(os.getenv('DC1_CONFIGDIR'),'generateDc1InstCat.sh')
+    print 'cmd = ',cmd
+    icDir = os.path.join(scrDir,'instCat')
+    print 'icDir = ',icDir
+    icName = 'phosim_cat_'+visitID+'.txt'
+    print 'icName = ',icName
+    icSelect = os.path.join(icDir,icName)
+    print 'icSelect = ',icSelect
+    minMag = os.getenv('DC1_MINMAG')
+    print 'minMag = ',minMag
+    opts = ' --db '+os.getenv('DC1_OPSIM_DB')+' --out '+icDir+' --id '+visitID+' --min_mag '+minMag
+    cmd += opts
+    log.info('Generate instanceCatalog.')
+    print cmd
+
+    sys.stdout.flush()
+    rc = os.system(cmd)
+    sys.stdout.flush()
+    log.info('Return from generateDc1InstCat, rc= '+str(rc))
+    if rc <> 0:
+        log.error('Failed to generate instance catalog.')
+        sys.exit(1)
+        pass
     pass
+
 
 
 ## Preserve the instance catalog info for subsequent processing steps
