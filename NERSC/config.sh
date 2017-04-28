@@ -3,6 +3,14 @@
 ## Prepare for phoSim
 ###  Hanma's visit DB of obsHistIDs and lists of sensors
 export DC1_VISIT_DB='/global/common/cori/contrib/lsst/production/DC1/visitDBs/2017-01-29_chipPerVisitData_newAfterburnerOutput_fID1447_RandomDitherFieldPerVisit_randomRotDithered_nonDiscRegion_131052TotChipsToSimulate.pickle'
+## This next visit database has revised (corrected) and expanded lists of sensors to simulate
+export DC1_VISIT_DB2='/global/common/cori/contrib/lsst/production/DC1/visitDBs/2017-04-10_reformatted_nopixNum_chipPerVisitData_fID1447_RandomDitherFieldPerVisit_randomRotDithered_nside1024_192103NonWFChipsToSimulate.pickle'
+
+## Setup mode: normal => fresh archive; update => run with existing archive, if it exists
+##   'update' is used with the visitDB is updated with additional
+##   sensors and we simply wish to overlay some new sensor visits with
+##   existing ones.
+export DC1_SETUP_MODE="UPDATE"
 
 ##
 ### Instance Catalog
@@ -11,13 +19,13 @@ export PHOSIM_IC_GEN='STATIC'
 
 ## Dynamic Instance Catalogs...
 ### OpSim DB for generating instanceCatalog
-export DC1_OPSIM_DB='/global/common/cori/contrib/lsst/production/DC1/opsimDBs/minion_1016_sqlite_new_dithers.db'
+#export DC1_OPSIM_DB='/global/common/cori/contrib/lsst/production/DC1/opsimDBs/minion_1016_sqlite_new_dithers.db'
 export DC1_OPSIM_DB='/global/cscratch1/sd/desc/opsimDBs/minion_1016_sqlite_new_dithers.db'
 
 ## minimum magnitude (max brightness) for objects in sky catalog
 export DC1_MINMAG=10.0
 
-## Static Instance Catalogs...
+## Static collection of pre-built Instance Catalogs...
 ## 3/27/2017 - Mustafa's private scratch area for collecting instanceCatalogs
 export PHOSIM_CATALOGS="/global/cscratch1/sd/mustafa/DC1-phoSim-3"
 
