@@ -109,10 +109,10 @@ trickleParms['firstStep'] = 'setupVisit'
 
 
 ## initial config (03/18/2017)
-step1 = ['setupVisit',3,1]
+step1 = ['setupVisit',20,1]
 trickleParms['steps'] = [step1]
 trickleParms['maxStreamsPerCycle'] = 3
-trickleParms['timePerCycle'] = 1200
+trickleParms['timePerCycle'] = 300
 
 
 
