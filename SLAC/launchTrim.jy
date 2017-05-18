@@ -67,7 +67,13 @@ vars.put("DC1_NUM_SENSORS",numSensors)
 vars.put("DC1_SELECTED_SENSORLIST",sensorList)
 
 ## Note that the number of trim jobs = 21(#rafts) + 1(optical path difference)
-for trim in range(0,ntrims):
-    pipeline.createSubstream("trim",trim,vars)
+print 'ntrims = ',ntrims
+print 'numSensors = ',numSensors
+if numSensors > 0:
+    for trim in range(0,ntrims):
+        pipeline.createSubstream("trim",trim,vars)
+        pass
+else:
+    print 'No sensors to simulate for this visit!'
     pass
-
+    
