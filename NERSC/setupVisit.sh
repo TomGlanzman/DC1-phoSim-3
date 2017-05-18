@@ -1,14 +1,6 @@
 #!/bin/bash
 # setupVisit.sh - set up environment
 
-############# DEBUG DEBUG ###############
-## Disable setupVisit until new (expanded) pickle file is available
-#echo "DEBUG EXIT"
-#exit 1
-############# DEBUG DEBUG ###############
-
-
-
 ## General task configuration (for all steps)
 source ${DC1_CONFIGDIR}/config.sh
 

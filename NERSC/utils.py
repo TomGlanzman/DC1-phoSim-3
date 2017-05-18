@@ -41,16 +41,17 @@ def getVisit(stream, visitFile):
     numVisits = len(obsHistIDs)
 
     if len(obsHistIDs) != len(chipNames):
-        print "%ERROR: #obsHistIDs =/= #chipNames"
+        print "%ERROR[getVisit]: #obsHistIDs =/= #chipNames[]"
         print 'len(obsHistIDs) = ',len(obsHistIDs)
         print 'len(chipNames) = ',len(chipNames)
         sys.exit(1)
         pass
 
-    print 'Number of visits in visit file = ',numVisits
+    print '[getVisit]: Number of visits in visit file = ',numVisits
     if stream > numVisits-1:
-        print "%ERROR: stream number too large"
-        sys.exit(1)
+        print "%ERROR[getVisit]:: stream number too large"
+        return (-1,[])
+#        sys.exit(1)
         pass
 
     ## Select visit
@@ -58,8 +59,8 @@ def getVisit(stream, visitFile):
     obsHistID = obsHistIDs[stream]
     chipList = chipNames[stream]
 
-    print 'stream = ',stream
-    print 'obsHistID = ',obsHistID
+    print '[getVisit]: stream = ',stream
+    print '[getVisit]: obsHistID = ',obsHistID
     #print 'chipList = ',chipList
 
 
@@ -73,6 +74,7 @@ def getVisit(stream, visitFile):
         if sensorID != None: phoSimSensorList.append(sensorID)
         pass
 
-    print 'Number of sensors to sim = ',len(phoSimSensorList)
-    print 'List of sensors to simulate this visit:\n',phoSimSensorList
+    print '[getVisit]: Number of sensors to sim = ',len(phoSimSensorList)
+    print '[getVisit]: List of sensors to simulate this visit:\n',phoSimSensorList
+    print '------------------------\n'
     return (obsHistID,phoSimSensorList)

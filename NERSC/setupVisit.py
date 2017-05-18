@@ -109,43 +109,22 @@ if rc <> 0 :
     pass
 
 
-## Check that SCRATCH (staging) area is clean
-scrDir = os.path.join(os.getenv('PHOSIM_SCR_ROOT'),os.getenv('DC1_SIXDIGSTREAM'))
-log.info('Checking phoSim scratch/staging space: '+scrDir)
-scr_work=os.path.join(scrDir,'work')
-scr_output=os.path.join(scrDir,'output')
-if os.access(scrDir,os.F_OK) and os.getenv('DC1_SETUP_MODE') == 'NORMAL':
-    log.info('phoSim scratch/staging directory already exists.  Cleaning up...')
-    shutil.rmtree(scrDir)
-    pass
-
-## Create staging area (work and output directories) in SCRATCH
-if os.getenv('DC1_SETUP_MODE') == 'NORMAL':
-    log.info('Creating phoSim work and output directories in $SCRATCH')
-    os.makedirs(scr_work,filePermissions)
-    os.makedirs(scr_output,filePermissions)
-    pass
-
-
-cmd = 'pipelineSet DC1_SCR_PHOSIMOUT '+scrDir
-print cmd
-rc = os.system(cmd)
-if rc <> 0 :
-    log.error("Unable to set pipeline variable \n $%s",cmd)
-    sys.exit(99)
-    pass
-
-
 ##
 ## Determine visit number (obsHistID) and list of sensors to simulate
 ##
+
 stream = int(os.getenv('PIPELINE_STREAM'))
 visitFile = os.getenv('DC1_VISIT_DB')
 log.info('Extract visit data.')
+updateVisitNew = False
 (visitID,fullSensorList) = getVisit(stream,visitFile)
+if visitID == -1 and not os.getenv('DC1_SETUP_MODE') == 'UPDATE':
+    log.error("Cannot extract desired visit from visitDB")
+    sys.exit(1)
+    pass
 visitID = str(visitID)
-print 'visitID = ',visitID,', type(visitID) = ',type(visitID)
-print 'fullSensorList = ',fullSensorList
+#print 'visitID = ',visitID
+#print 'fullSensorList = ',fullSensorList,'\n\n'
 sensorList = fullSensorList
 
 #########################################
@@ -153,20 +132,31 @@ sensorList = fullSensorList
 #########################################
 if os.getenv('DC1_SETUP_MODE') == 'UPDATE':
     log.info('Running in UPDATE mode')
+    if visitID == '-1':
+        updateVisitNew = True
+        log.info('This is a new visit in UPDATE mode')
+        pass
     visitFile2 = os.getenv('DC1_VISIT_DB2')
     (visitID2,sensorList2) = getVisit(stream,visitFile2)
-    if visitID != visitID2:
+    visitID2 = str(visitID2)
+ #   print 'visitID2 = ',visitID2
+    if visitID != visitID2 and not visitID == '-1':
         log.error('Obtained different visitIDs for same stream')
+        print 'visitID = ',visitID,', visitID2 = ',visitID2
         sys.exit(1)
         pass
+    visitID = visitID2    # case where new visitID has *new* visits to add
     s1 = set(fullSensorList)
     s2 = set(sensorList2)
     sinterx = s2 & s1
     newSensorList = list(s2 - sinterx)
-    print 'New sensor list [',len(newSensorList),'] : ',newSensorList
+    print 'Sensor add list [',len(newSensorList),'] : ',newSensorList
+    rmSensorList = list(s1-sinterx)
+    print 'sensor remove list [',len(rmSensorList),'] : ',rmSensorList
     sensorList = newSensorList
     pass
-                  
+
+print '\n'
 
 
 ## Package up the sensorList into variables of <990 characters each (email limitation)
@@ -193,17 +183,50 @@ if rc1 <> 0 or rc2 <> 0 or rc3 <> 0:
     pass
 
 
-##  Set up phoSim instanceCatalog
+##
+## SCRATCH directory setup
+##
+
+## Check that SCRATCH (staging) area is clean
+scrDir = os.path.join(os.getenv('PHOSIM_SCR_ROOT'),os.getenv('DC1_SIXDIGSTREAM'))
+log.info('Checking phoSim scratch/staging space: '+scrDir)
+scr_work=os.path.join(scrDir,'work')
+scr_output=os.path.join(scrDir,'output')
+if os.access(scrDir,os.F_OK) and (os.getenv('DC1_SETUP_MODE') == 'NORMAL' or updateVisitNew):
+    log.info('phoSim scratch/staging directory already exists.  Cleaning up...')
+    shutil.rmtree(scrDir)
+    pass
+
+## Create staging area (work and output directories) in SCRATCH
+if os.getenv('DC1_SETUP_MODE') == 'NORMAL' or updateVisitNew:
+    log.info('Creating phoSim work and output directories in $SCRATCH')
+    os.makedirs(scr_work,filePermissions)
+    os.makedirs(scr_output,filePermissions)
+    pass
+
+
+cmd = 'pipelineSet DC1_SCR_PHOSIMOUT '+scrDir
+print cmd
+rc = os.system(cmd)
+if rc <> 0 :
+    log.error("Unable to set pipeline variable \n $%s",cmd)
+    sys.exit(99)
+    pass
+
+
+##
+##  phoSim instanceCatalog setup
+##
 
 icName = 'phosim_cat_'+visitID+'.txt'
 print 'icName = ',icName
-icSelect = os.path.join(icDir,icName)
-print 'icSelect = ',icSelect
 
-    if os.getenv('PHOSIM_IC_GEN') == 'STATIC':
+if os.getenv('PHOSIM_IC_GEN') == 'STATIC':
     print 'Using statically generated instance catalog'
     icDir = os.getenv('PHOSIM_CATALOGS')+'/'+visitID
     print 'icDir = ',icDir
+    icSelect = os.path.join(icDir,icName)
+    print 'icSelect = ',icSelect
     
 elif os.getenv('PHOSIM_IC_GEN') == 'DYNAMIC':
     print 'Using dymanically generated instance catalog'
@@ -212,6 +235,8 @@ elif os.getenv('PHOSIM_IC_GEN') == 'DYNAMIC':
     print 'cmd = ',cmd
     icDir = os.path.join(scrDir,'instCat')
     print 'icDir = ',icDir
+    icSelect = os.path.join(icDir,icName)
+    print 'icSelect = ',icSelect
     minMag = os.getenv('DC1_MINMAG')
     print 'minMag = ',minMag
     opts = ' --db '+os.getenv('DC1_OPSIM_DB')+' --out '+icDir+' --id '+visitID+' --min_mag '+minMag
@@ -231,6 +256,8 @@ elif os.getenv('PHOSIM_IC_GEN') == 'EXISTING':
     print 'Using existing instanceCatalog'
     icDir = os.path.join(scrDir,'instCat')
     print 'icDir = ',icDir
+    icSelect = os.path.join(icDir,icName)
+    print 'icSelect = ',icSelect
 
 ## Should probably check to see if this directory really exists!
     
@@ -402,7 +429,7 @@ os.system('chmod -R 0755 '+scrDir)
 dirList = os.listdir(scr_work)
 ntrim = 0
 for filex in dirList:
-    if filex.startswith('trim') and filex.endswith('.pars'):ntrim+=1
+    if filex.startswith('trim_') and filex.endswith('.pars'):ntrim+=1
     pass
 log.info('There are '+str(ntrim)+ ' trim jobs to perform.')
 
@@ -414,6 +441,7 @@ if rc <> 0 :
     log.error("Unable to set pipeline variable \n $%s",cmd)
     sys.exit(99)
     pass
+
 
 
 ## All done.
